@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product List</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .search-container {
+            margin-top: 20px;
+        }
+        
+        .search-input {
+            padding: 10px;
+            width: 300px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        
+        .search-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .manualButton {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        Hello, {{ response_data['name'] }}
+        <a href="{{ url_for('user_routes.do_user_logout')}}">Logout</a>
+    </div>
+    <h2>Account List</h2>
+    <div id="manualButton" class="manualButton">
+        <button onclick="openNewProductForm()">Add New Account</button>
+        <button onclick="openTransaction()">Transaction</button>
+    </div>
+    <div class="search-container">
+        <input type="text" class="search-input" id="searchInput" placeholder="Search...">
+        <button id="search-input" class="search-button" onclick="search()">Search</button>
+    </div>
+    <hr style="border:none;"/>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Account Type</th>
+                <th>Account Number</th>
+                <th>Balance</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for Accounts in response_data.account %}
+            <tr>
+                <td>{{ Accounts.id }}</td>
+                <td>{{ Accounts.user_id }}</td>
+                <td>{{ Accounts.account_type }}</td>
+                <td>{{ Accounts.account_number }}</td>
+                <td>{{ Accounts.balance }}</td>
+                <td>
+                    <button>Review</button>
+                    <button onclick="openEditProductForm('{{ Accounts.id }}')">Edit</button>
+                    <button id="delete_{{ Accounts.id }}" onclick="deleteProduct('{{ Accounts.id }}')">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+            <!-- Add more <tr> elements for additional products -->
+        </tbody>
+    </table>
+
+    <div id="newAccountForm" style="display: none;">
+        <h3 id="formSection">Add New Account</h3>
+        <form id="accountForm">
+            <input type="hidden" id="accountId" name="accountId">
+            <label for="userId">User ID:</label>
+            <input type="number" id="userId" name="userId"><br><br>
+            <label for="accountType">Account Type:</label>
+            <select id="accountType" name="accountType" required>
+                <option value="checking">Checking</option>
+                <option value="savings">Savings</option>
+            </select><br><br>
+            <label for="accountNumber">Account Number:</label>
+            <input type="number" id="accountNumber" name="accountNumber"><br><br>
+            <label for="balance">Nominal:</label>
+            <input type="number" id="balance" name="balance"><br><br>
+
+            <button type="button" onclick="submitForm()">Submit</button>
+            <button type="button" onclick="closeNewProductForm()">Cancel</button>
+        </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script>
+        var form_url = base_url;
+        var form_method = 'POST';
+        var base_url = "{{ url_for('account_routes.account_list') }}";
+        
+        function openNewProductForm() {
+            form_method = 'POST';
+            form_url = base_url;
+            document.getElementById("newAccountForm").style.display = "block";
+            document.getElementById("formSection").innerHTML = "Add New Account";
+            document.getElementById("productForm").reset();
+        }
+
+        function openEditProductForm(accountId) {
+            form_method = 'PUT';
+            form_url = base_url + "/" + accountId;
+
+            $.ajax({
+                url: base_url + "/" + accountId,
+                success: function(response) {
+                    var account = response.data;
+                    var user_id_input = $('#userId');
+                    var account_number_input = $('#accountNumber');
+
+                    user_id_input.val(account.user_id);
+                    account_number_input.val(account.account_number);
+
+                    user_id_input.prop('disabled', true);
+                    account_number_input.prop('disabled', true)
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error:", error);
+                }
+            });
+            document.getElementById("newAccountForm").style.display = "block";
+            document.getElementById("formSection").innerHTML = "Edit Account";
+        }
+
+        function closeNewProductForm() {
+            document.getElementById("newAccountForm").style.display = "none";
+        }
+
+        function submitForm(){
+            var request_data = {
+                user_id: parseInt( document.getElementById('userId').value ),
+                account_type: document.getElementById('accountType').value,
+                account_number: parseInt( document.getElementById('accountNumber').value ),
+                balance: parseInt( document.getElementById('balance').value )
+            }
+
+            $.ajax({
+                url: form_url,
+                data: JSON.stringify (request_data),
+                method: form_method,
+                headers: {
+                    "Content-type": "application/json"
+                }
+            }).done(function(response){
+                alert(response.message);
+                location.reload();
+            })
+        }
+
+        function deleteProduct(accountId){
+            var confirmation = confirm("Apakah Anda yakin ingin menghapus akun ini?");
+
+            if (confirmation) {
+                $.ajax({
+                    url: `/account/${accountId}`,
+                    type: 'DELETE',
+                    success: function(response) {
+                        // Handle success response
+                        alert(response.message);
+                        // Refresh the page to update the account list
+                        location.reload();
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle error response
+                        console.error("Error:", error);
+                        alert("Failed to delete account.");
+                    }
+                });
+            }
+            
+        }
+
+        function search(){
+            window.location = base_url + "?query=" + $('#searchInput').val();
+        }
+
+        function openTransaction() {
+            // Redirect to transaction page
+            window.location.href = "{{ url_for('transaction_routes.transaction_list') }}";
+        }
+    </script>
+</body>
+</html>
+ 
