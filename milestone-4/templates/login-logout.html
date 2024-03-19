@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+</head>
+<body>
+    <h1>Welcome, {{ username }}!</h1>
+    <p>You have successfully logged in.</p>
+    <form action="{{ url_for('account_routes.account_page') }}" method="GET">
+        <input type="submit" value="Create Account">
+    </form>
+    <form action="{{ url_for('account_routes.update_account_page', id=current_user.id) }}" method="GET">
+        <input type="submit" value="Update Account">
+    </form>
+    <form action="{{ url_for('crud_routes.logout') }}" method="GET">
+        <input type="submit" value="Logout">
+    </form>
+    <!-- Redirect button to update_user.html -->
+    <a href="{{ url_for('crud_routes.update_page', id=current_user.id) }}">Update Profile</a>
+
+
+    <!-- Container to display user profile data -->
+    <div id="userProfile">
+        <!-- User profile data will be displayed here -->
+    </div>
+
+    <!-- JavaScript to fetch user profile data and display it -->
+    <script>
+        // Function to fetch user profile data and display it
+        function fetchUserProfile() {
+            fetch('/user_profile')
+                .then(response => response.json())
+                .then(data => {
+                    // Update the HTML content with user profile data
+                    document.getElementById('userProfile').innerHTML = `
+                        <h2>User Profile</h2>
+                        <p>Username: ${data.username}</p>
+                        <p>Email: ${data.email}</p>
+                        <!-- Add more profile data if needed -->
+                    `;
+                })
+                .catch(error => console.error('Error fetching user profile:', error));
+        }
+
+        // Call fetchUserProfile when the page loads
+        fetchUserProfile();
+    </script>
+</body>
+</html>

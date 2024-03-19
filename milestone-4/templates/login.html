@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+    <h2>Login</h2>
+    <form id="loginForm" action="{{ url_for('crud_routes.login') }}" method="POST">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" required><br>
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+        <input type="submit" value="Login">
+    </form>
+
+    <script>
+        function showWarning() {
+            alert("You don't have a bank account yet. Please register a bank account.");
+        }
+
+        function redirectToAccountPage() {
+            window.location.href = "/accounts_page";
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Stop the form from submitting
+            
+            // Perform your form validation or any other action here
+            
+            // For example, check if the user has a bank account
+            // Assuming you have a variable 'hasBankAccount' that determines this
+            var hasBankAccount = true; // Set to false if the user doesn't have a bank account
+            
+            if (!hasBankAccount) {
+                // Show warning message
+                showWarning();
+            } else {
+                // Proceed with login
+                this.submit(); // Submit the form
+            }
+        });
+    </script>
+</body>
+</html>
+

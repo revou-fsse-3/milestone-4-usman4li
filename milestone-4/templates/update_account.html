@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Account</title>
+</head>
+<body>
+    <h1>Update Account</h1>
+    <form id="updateAccountForm" onsubmit="sendUpdateRequest(); return false;">
+        <label for="newBalance">New Balance:</label><br>
+        <input type="number" id="newBalance" name="balance" step="0.01"><br><br>
+        
+        <label for="accountType">Account Type:</label>
+        <select id="accountType" name="accountType">
+            <option value="platinum">Platinum</option>
+            <option value="gold">Gold</option>
+            <option value="silver">Silver</option>
+        </select><br><br>
+
+        <input type="submit" value="Apply">
+    </form>
+
+    <script>
+        function sendUpdateRequest() {
+            var form = document.getElementById("updateAccountForm");
+            var formData = new FormData(form);
+            var accountId = window.location.pathname.split('/').pop(); // Mendapatkan ID akun dari URL
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("PUT", "/account/" + accountId);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    alert("Account updated successfully");
+                    // Redirect to another page or perform additional actions upon successful update
+                    window.location.href = "/"; // Contoh: Redirect ke halaman utama setelah pembaruan berhasil
+                } else {
+                    alert("Failed to update account");
+                }
+            };
+            xhr.send(JSON.stringify(Object.fromEntries(formData.entries())));
+        }
+    </script>
+</body>
+</html>

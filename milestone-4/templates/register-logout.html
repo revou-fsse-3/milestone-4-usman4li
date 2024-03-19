@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Success</title>
+</head>
+<body>
+    <h1>Selamat datang, {{ username }}!</h1>
+    <p>Anda telah berhasil registrasi.</p>
+    <form action="{{ url_for('crud_routes.logout_page_register') }}" method="GET">
+        <input type="submit" value="Logout">
+    </form>
+</body>
+</html>

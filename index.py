@@ -1,15 +1,15 @@
 
 import os
 from dotenv import load_dotenv
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, request, url_for
 from flask_login import LoginManager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
 
 from connectors.mysql_connector import engine
 from controllers.user import user_routes
-from controllers.transaction import transaction_routes
 from controllers.account import account_routes
+from controllers.transaction import transaction_routes
 from models.user import User
 from models.transaction import Transaction
 
@@ -31,8 +31,8 @@ def load_user(user_id):
     return session.query(User).get(int(user_id))
 
 app.register_blueprint(user_routes)
-app.register_blueprint(transaction_routes)
 app.register_blueprint(account_routes)
+app.register_blueprint(transaction_routes)
 
 # Product Route
 @app.route("/")
@@ -46,5 +46,11 @@ def hello_world():
     #     for row in result.scalars():
     #         print(f'ID: {row.id}, Name: {row.from_account_id}')
     # return redirect(url_for('user_routes.do_user_login'))
+    print("Nilai dari request.form:", request.form)
+    print("Nilai dari 'username':", request.form.get('username'))
+    
     return redirect('/account')
+
+if __name__ == '__main__':
+    app.run(debug=True)
  

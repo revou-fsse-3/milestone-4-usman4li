@@ -1,69 +1,81 @@
-from flask import Blueprint, redirect, render_template, request
+from flask import Blueprint, jsonify, render_template, request
 from connectors.mysql_connector import engine
 
 from models.user import User
 from sqlalchemy.orm import sessionmaker
 from flask_login import login_user, logout_user
+
 user_routes = Blueprint('user_routes', __name__)
 
-@user_routes.route("/register", methods=['GET'])
-def user_register():
-    return render_template("user/register.html")
-
-@user_routes.route("/register", methods=['POST'])
+@user_routes.route("/register", methods=['GET','POST'])
 def do_register():
-    username = request.form['username']
-    email = request.form['email']
-    password_hash = request.form['password_hash']
+    if request.method == 'POST':
 
-    NewUser = User(username=username, email=email)
-    NewUser.set_password(password_hash)
+        try:
+            data = request.get_json()
+            username = data['name']
+            email = data['email']
+            password_hash = data['password_hash']
 
-    connection = engine.connect()
-    Session = sessionmaker(connection)
-    session = Session()
+            print("name:", username)
 
-    session.begin()
-    try:
-        session.add(NewUser)
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        print(f"Error during registration: {e}")
-        return { "message": "Gagal Register" }
+            NewUser = User(username=username, email=email)
+            NewUser.set_password(password_hash)
 
-    return { "message": "Sukses Register" }
+            connection = engine.connect()
+            Session = sessionmaker(connection)
+            session = Session()
 
-@user_routes.route("/login", methods=['GET'])
-def user_login():
-    return render_template("user/login.html")
+            session.begin()
+            try:
+                session.add(NewUser)
+                session.commit()
+            except Exception as e:
+                session.rollback()
+                print(f"Error during registration: {e}")
+                return jsonify({ "message": "Gagal Register" })
 
-@user_routes.route("/login", methods=['POST'])
+            return jsonify({ "message": "Sukses Register" })
+
+        except Exception as e:
+            print(e)
+            return jsonify({ "message": "Internal Server Error" }), 500
+    else:
+        return render_template("user/register.html")
+
+@user_routes.route("/login", methods=['GET','POST'])
 def do_user_login():
-    connection = engine.connect()
-    Session = sessionmaker(connection)
-    session = Session()
+    if request.method == 'POST':
 
-    try:
-        users = session.query(User).filter(User.email==request.form['email']).first()
+        try:
+            data = request.get_json()
+            email = data['email']
+            password_hash = data['password_hash']
 
-        if users == None:
-            return {"message": "Email tidak terdaftar"}
-        
-        #Check Password
-        if not users.check_password(request.form['password_hash']):
-            return {"message" : "password Salah"}
+            connection = engine.connect()
+            Session = sessionmaker(connection)
+            session = Session()
 
-        login_user(users, remember=False)
-        return redirect('/transactions')
+            users = session.query(User).filter(User.email==email).first()
+
+            if users == None:
+                return jsonify({"message": "Email tidak terdaftar"})
+            
+            #Check Password
+            if not users.check_password(password_hash):
+                return jsonify({"message" : "password Salah"})
+
+            login_user(users, remember=False)
+            return jsonify({ "message": "Login berhasil" }), 200
+            
+        except Exception as e:
+            print(e)
+            return jsonify({ "message": "Login Gagal" }), 500
     
-    except Exception as e:
-        print(e)
-        return { "message": "Login Failed"}
+    else:
+        return render_template("user/login.html")
     
-
-
 @user_routes.route("/logout", methods=['GET'])
 def do_user_logout():
     logout_user()
-    return (redirect('/login'))
+    return jsonify({ "message": "Logout berhasil" }), 200

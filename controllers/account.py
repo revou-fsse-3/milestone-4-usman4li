@@ -1,5 +1,4 @@
-
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, jsonify, render_template, request
 from sqlalchemy import select, create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -21,9 +20,9 @@ def account_list():
     try:
         account_query = select(Account)
 
-        if request.args.get('query') is not None:
-            search_query = request.args.get('query')
-            account_query = account_query.where(Account.user_id.like(f'%{ search_query }%'))
+        # if request.args.get('query') is not None:
+        #     search_query = request.args.get('query')
+        #     account_query = account_query.where(Account.user_id.like(f'%{ search_query }%'))
 
         account = session.execute(account_query)
         account = account.scalars()

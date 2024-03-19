@@ -1,4 +1,3 @@
-
 from sqlalchemy import DECIMAL, DateTime, Integer, String, func
 from models.base import Base
 from sqlalchemy.orm import mapped_column
