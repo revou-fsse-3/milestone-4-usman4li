@@ -100,11 +100,9 @@ def get_transactions():
     try:
         session = get_session()  # Get the database session
         transactions = session.query(Transaction).all()  # Get all transactions from the database
-
         # Convert the list of transactions to JSON format
         transactions_json = []
         for transaction in transactions:
-            timestamp_str = transaction.timestamp.strftime('%Y-%m-%d %H:%M:%S')
             transaction_data = {
                 'id': transaction.id,
                 'from_account_id': transaction.from_account_id,
@@ -112,7 +110,7 @@ def get_transactions():
                 'amount': str(transaction.amount),
                 'type': transaction.type,
                 'description': transaction.description,
-                'timestamp': timestamp_str
+                'timestamp': transaction.created_at
             }
             transactions_json.append(transaction_data)
 
@@ -121,6 +119,30 @@ def get_transactions():
 
     except Exception as e:
         return jsonify({'message': str(e)}), 500
-    
-    #                 'created_at': datetime.strftime(account.created_at, '%Y-%m-%d %H:%M:%S'),
-#                 'updated_at': datetime.strftime(account.updated_at, '%Y-%m-%d %H:%M:%S')
+
+@transaction_routes.route('/transactions/<int:id>', methods=['GET'])
+def get_transaction_by_id(id):
+    try:
+        session = get_session()  # import database
+        transaction = session.query(Transaction).filter_by(id=id).first()  # Ambil transaksi berdasarkan ID
+        if not transaction:
+            return jsonify({'message': 'Transaction not found'}), 404  # Kembalikan pesan jika transaksi tidak ditemukan
+        
+        # Ubah objek transaksi menjadi format JSON
+        transaction_data = {
+            'id': transaction.id,
+            'from_account_id': transaction.from_account_id,
+            'to_account_id': transaction.to_account_id,
+            'amount': str(transaction.amount),
+            'type': transaction.type,
+            'description': transaction.description,
+            'created_at': transaction.created_at
+        }
+
+        return jsonify(transaction_data), 200  # Kembalikan data transaksi dalam format JSON
+
+    except Exception as e:
+        return jsonify({'message': str(e)}), 500  # Kembalikan pesan kesalahan jika terjadi kesalahan
+
+    finally:
+        session.close()
